@@ -9,6 +9,17 @@ pipeline {
             }
         }
 
+        stage('Login to Docker') {
+            steps {
+                script {
+                    // Login to Docker registry using your specific Docker credentials
+                    withCredentials([usernamePassword(credentialsId: 'docker-viswaraje', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                        bat "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                    }
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
@@ -37,11 +48,20 @@ pipeline {
                 }
             }
         }
+
+        stage('Push to Docker Registry') {
+            steps {
+                script {
+                    // Push the Docker image to a Docker registry
+                    bat "docker push myfrontend-app"
+                }
+            }
+        }
     }
 
     post {
         success {
-            echo 'Build and deploy completed successfully'
+            echo 'Build, deploy, and push completed successfully'
         }
         failure {
             echo 'Build or deploy failed'
