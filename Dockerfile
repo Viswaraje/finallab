@@ -1,23 +1,20 @@
-# Stage 1: Build and install dependencies
-FROM node:16 AS build
+# Stage 1: Build Stage (Optional, could be used to prepare files in the future)
+# In this case, the build stage does nothing, but you can add tasks in the future if needed
+FROM alpine AS build-stage
 
-# Set working directory
+# Copy the index.html file (this can be extended for future use)
 WORKDIR /app
+COPY index.html .
 
-# Copy the index.html file into the container
-COPY frontend/index.html /app/index.html
+# Stage 2: Production Stage
+# Use Nginx to serve the HTML file
+FROM nginx:alpine AS production-stage
 
-# Install any dependencies (if needed for later stages)
-# RUN npm install
+# Copy the index.html file from the build stage into the Nginx default directory
+COPY --from=build-stage /app/index.html /usr/share/nginx/html/index.html
 
-# Stage 2: Production Deployment
-FROM nginx:alpine
-
-# Copy the built index.html file from the build stage
-COPY --from=build /app/index.html /usr/share/nginx/html/
-
-# Expose port 80 for nginx
+# Expose port 80 (standard HTTP port)
 EXPOSE 80
 
-# Start nginx server
+# Start Nginx in the foreground
 CMD ["nginx", "-g", "daemon off;"]
