@@ -1,39 +1,32 @@
 pipeline {
     agent any
-
     stages {
-        stage('Checkout') {
+        stage('Clone Repository') {
             steps {
-                // Checkout the code from the GitHub repository
-                git 'https://github.com/Viswaraje/finallab.git'
+                git url: 'https://github.com/Viswaraje/finallab.git', branch: 'main'
             }
         }
-
         stage('Build Docker Image') {
             steps {
-                // Build Docker image directly without using a variable
-                powershell '''
-                    docker build -t my-web-app-image .
-                '''
+                script {
+                    // Build the Docker image with the tag 'react-frontend:latest'
+                    docker.build('react-frontend:latest', '.')
+                }
             }
         }
-
-        stage('Deploy') {
+        stage('Run Container') {
             steps {
-                // Deploy Docker container directly without using a variable
-                powershell '''
-                    docker run -d -p 80:80 my-web-app-image
-                '''
+                script {
+                    // Correct way to run the Docker container with port mapping
+                    docker.image('react-frontend:latest').run('-p 8081:80')
+                }
             }
         }
     }
-
     post {
         always {
-            // Clean up Docker resources using PowerShell
-            powershell '''
-                docker system prune -f
-            '''
+            // Clean up the workspace after the pipeline run
+            cleanWs()
         }
     }
 }
